@@ -66,11 +66,6 @@ def health():
     return {"service": "Bid Workbench API", "version": "1.0.0", "status": "ok"}
 
 
-@app.get("/")
-def root():
-    return {"service": "Bid Workbench API", "version": "1.0.0"}
-
-
 @app.post("/api/upload")
 async def upload_tender(file: UploadFile = File(...)):
     """Upload a tender document, parse it, and create a task."""
@@ -323,9 +318,21 @@ _STATIC_DIR = os.path.join(_BASE_DIR, "static")
 if os.path.isdir(_STATIC_DIR):
     app.mount("/assets", StaticFiles(directory=os.path.join(_STATIC_DIR, "assets")), name="assets")
 
+    @app.get("/")
+    @app.head("/")
+    async def serve_root():
+        """Explicitly serve index.html for root path."""
+        index = os.path.join(_STATIC_DIR, "index.html")
+        if os.path.exists(index):
+            return FileResponse(index)
+        return {"error": "Frontend not built yet"}
+
     @app.get("/{full_path:path}")
     async def serve_spa(full_path: str):
         """Catch-all: serve index.html for any non-API route (SPA support)."""
+        # Skip API paths (shouldn't reach here, but safety net)
+        if full_path.startswith("api/") or full_path.startswith("api"):
+            raise HTTPException(404, "Not found")
         index = os.path.join(_STATIC_DIR, "index.html")
         if os.path.exists(index):
             return FileResponse(index)
