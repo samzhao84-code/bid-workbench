@@ -1,14 +1,780 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>投标文件智能生成工作台</title>
-    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
-    <script type="module" crossorigin src="/assets/index-CGwpSEMQ.js"></script>
-    <link rel="stylesheet" crossorigin href="/assets/index-Uhzw1H9e.css">
-  </head>
-  <body>
-    <div id="root"></div>
-  </body>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>智能投标工作台</title>
+  <style>
+    /* ─── Reset & Base ─────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:          #ffffff;
+      --surface:     #f5f5f7;
+      --surface2:    #e8e8ed;
+      --border:      #d2d2d7;
+      --border-soft: #e8e8ed;
+      --text:        #1d1d1f;
+      --text-sub:    #6e6e73;
+      --text-muted:  #aeaeb2;
+      --accent:      #0071e3;
+      --accent-h:    #0077ed;
+      --accent-dim:  #e8f0fb;
+      --success:     #1d9c5e;
+      --success-dim: #e3f6ed;
+      --warn:        #f56300;
+      --warn-dim:    #fff0e6;
+      --red:         #d70015;
+      --radius-sm:   8px;
+      --radius:      14px;
+      --radius-lg:   20px;
+      --shadow-sm:   0 1px 3px rgba(0,0,0,.06), 0 1px 2px rgba(0,0,0,.04);
+      --shadow:      0 4px 16px rgba(0,0,0,.08), 0 1px 4px rgba(0,0,0,.04);
+      --shadow-lg:   0 8px 32px rgba(0,0,0,.10), 0 2px 8px rgba(0,0,0,.05);
+      --font: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display",
+              "PingFang SC", "Helvetica Neue", sans-serif;
+      --mono: "SF Mono", ui-monospace, "Cascadia Code", Menlo, monospace;
+    }
+
+    html { font-size: 16px; }
+
+    body {
+      font-family: var(--font);
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.5;
+      -webkit-font-smoothing: antialiased;
+      min-height: 100vh;
+    }
+
+    /* ─── Nav ──────────────────────────────────────────────── */
+    nav {
+      position: sticky; top: 0; z-index: 100;
+      height: 48px;
+      background: rgba(255,255,255,.82);
+      backdrop-filter: saturate(180%) blur(20px);
+      -webkit-backdrop-filter: saturate(180%) blur(20px);
+      border-bottom: 1px solid var(--border-soft);
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 24px;
+    }
+    .nav-brand {
+      font-size: 15px; font-weight: 600; letter-spacing: -.3px; color: var(--text);
+      display: flex; align-items: center; gap: 8px;
+    }
+    .nav-brand svg { color: var(--accent); }
+    .nav-badge {
+      font-size: 11px; font-weight: 500;
+      background: var(--accent-dim); color: var(--accent);
+      padding: 2px 8px; border-radius: 99px;
+    }
+
+    /* ─── Layout ───────────────────────────────────────────── */
+    .page { max-width: 860px; margin: 0 auto; padding: 48px 24px 96px; }
+
+    /* ─── Hero ─────────────────────────────────────────────── */
+    .hero { text-align: center; margin-bottom: 56px; }
+    .hero h1 {
+      font-size: clamp(28px, 5vw, 44px);
+      font-weight: 700; letter-spacing: -.6px; line-height: 1.15;
+      color: var(--text); margin-bottom: 12px;
+    }
+    .hero p { font-size: 17px; color: var(--text-sub); max-width: 480px; margin: 0 auto; }
+
+    /* ─── Steps ────────────────────────────────────────────── */
+    .steps {
+      display: flex; align-items: flex-start; gap: 0;
+      margin-bottom: 48px; position: relative;
+    }
+    .steps::before {
+      content: ''; position: absolute;
+      top: 16px; left: 0; right: 0; height: 1px;
+      background: var(--border-soft); z-index: 0;
+    }
+    .step {
+      flex: 1; display: flex; flex-direction: column; align-items: center;
+      gap: 8px; position: relative; z-index: 1;
+    }
+    .step-circle {
+      width: 32px; height: 32px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 13px; font-weight: 600;
+      background: var(--bg); border: 1.5px solid var(--border);
+      color: var(--text-muted); transition: all .3s;
+    }
+    .step.active .step-circle {
+      background: var(--accent); border-color: var(--accent);
+      color: #fff; box-shadow: 0 0 0 5px var(--accent-dim);
+    }
+    .step.done .step-circle {
+      background: var(--success); border-color: var(--success); color: #fff;
+    }
+    .step-label { font-size: 12px; color: var(--text-muted); font-weight: 500; }
+    .step.active .step-label { color: var(--accent); }
+    .step.done .step-label { color: var(--success); }
+
+    /* ─── Card ─────────────────────────────────────────────── */
+    .card {
+      background: var(--bg); border: 1px solid var(--border-soft);
+      border-radius: var(--radius-lg); padding: 32px;
+      box-shadow: var(--shadow);
+    }
+    .card-title {
+      font-size: 20px; font-weight: 700; letter-spacing: -.3px;
+      color: var(--text); margin-bottom: 6px;
+    }
+    .card-sub { font-size: 14px; color: var(--text-sub); margin-bottom: 28px; }
+
+    /* ─── Upload Zone ──────────────────────────────────────── */
+    .upload-zone {
+      border: 2px dashed var(--border);
+      border-radius: var(--radius);
+      padding: 56px 24px;
+      text-align: center;
+      cursor: pointer;
+      transition: border-color .2s, background .2s;
+      position: relative;
+    }
+    .upload-zone:hover, .upload-zone.drag {
+      border-color: var(--accent); background: var(--accent-dim);
+    }
+    .upload-zone input[type=file] {
+      position: absolute; inset: 0; opacity: 0; cursor: pointer;
+    }
+    .upload-icon {
+      width: 48px; height: 48px; margin: 0 auto 16px;
+      background: var(--surface); border-radius: 12px;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .upload-icon svg { color: var(--accent); }
+    .upload-title { font-size: 17px; font-weight: 600; color: var(--text); margin-bottom: 6px; }
+    .upload-hint { font-size: 14px; color: var(--text-sub); }
+
+    .file-selected {
+      display: none; align-items: center; gap: 12px;
+      background: var(--surface); border: 1px solid var(--border-soft);
+      border-radius: var(--radius-sm); padding: 14px 16px; margin-top: 16px;
+    }
+    .file-selected.show { display: flex; }
+    .file-icon {
+      width: 36px; height: 36px; background: var(--accent-dim);
+      border-radius: 8px; display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .file-icon svg { color: var(--accent); }
+    .file-info { flex: 1; min-width: 0; }
+    .file-name { font-size: 14px; font-weight: 500; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .file-size { font-size: 12px; color: var(--text-muted); }
+
+    /* ─── Buttons ──────────────────────────────────────────── */
+    .btn {
+      display: inline-flex; align-items: center; gap: 6px;
+      font-family: var(--font); font-size: 15px; font-weight: 500;
+      padding: 10px 20px; border-radius: 980px;
+      border: none; cursor: pointer; transition: all .2s;
+      white-space: nowrap;
+    }
+    .btn:disabled { opacity: .4; cursor: not-allowed; }
+    .btn-primary { background: var(--accent); color: #fff; }
+    .btn-primary:hover:not(:disabled) { background: var(--accent-h); }
+    .btn-secondary { background: var(--surface); color: var(--text); border: 1px solid var(--border); }
+    .btn-secondary:hover:not(:disabled) { background: var(--surface2); }
+    .btn-ghost { background: transparent; color: var(--accent); padding: 8px 12px; }
+    .btn-ghost:hover { background: var(--accent-dim); }
+
+    .btn-row {
+      display: flex; gap: 10px; align-items: center;
+      justify-content: flex-end; margin-top: 28px; flex-wrap: wrap;
+    }
+
+    /* ─── Spinner ──────────────────────────────────────────── */
+    .spinner {
+      width: 18px; height: 18px;
+      border: 2px solid rgba(255,255,255,.3); border-top-color: #fff;
+      border-radius: 50%; animation: spin .7s linear infinite; flex-shrink: 0;
+    }
+    .spinner-dark { border-color: var(--border); border-top-color: var(--accent); }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .loading-block {
+      display: flex; flex-direction: column; align-items: center;
+      gap: 16px; padding: 56px 0;
+    }
+    .loading-block .spinner { width: 28px; height: 28px; border-width: 3px; }
+
+    .progress-bar-wrap {
+      height: 3px; background: var(--surface2);
+      border-radius: 99px; overflow: hidden; width: 100%; max-width: 320px;
+    }
+    .progress-bar {
+      height: 100%; background: var(--accent);
+      border-radius: 99px; transition: width .5s ease;
+    }
+
+    /* ─── Req List ─────────────────────────────────────────── */
+    .req-stats {
+      display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap;
+    }
+    .stat-chip {
+      font-size: 12px; font-weight: 500; padding: 4px 12px;
+      border-radius: 99px; background: var(--surface);
+      color: var(--text-sub); border: 1px solid var(--border-soft);
+      display: flex; align-items: center; gap: 5px;
+    }
+    .stat-chip .dot { width: 6px; height: 6px; border-radius: 50%; }
+
+    .req-list {
+      display: flex; flex-direction: column; gap: 8px;
+      max-height: 400px; overflow-y: auto; padding-right: 4px;
+    }
+    .req-list::-webkit-scrollbar { width: 4px; }
+    .req-list::-webkit-scrollbar-thumb { background: var(--border); border-radius: 99px; }
+
+    .req-item {
+      display: flex; align-items: flex-start; gap: 12px;
+      padding: 14px 16px; background: var(--surface);
+      border: 1px solid var(--border-soft); border-radius: var(--radius-sm);
+      transition: border-color .15s;
+    }
+    .req-item:hover { border-color: var(--border); }
+
+    .req-checkbox {
+      width: 18px; height: 18px; border: 1.5px solid var(--border);
+      border-radius: 5px; flex-shrink: 0; cursor: pointer;
+      appearance: none; -webkit-appearance: none;
+      background: var(--bg); margin-top: 1px;
+      transition: all .15s; position: relative;
+    }
+    .req-checkbox:checked { background: var(--accent); border-color: var(--accent); }
+    .req-checkbox:checked::after {
+      content: ''; position: absolute;
+      left: 4px; top: 1px; width: 5px; height: 9px;
+      border: 2px solid #fff; border-left: none; border-top: none;
+      transform: rotate(45deg);
+    }
+
+    .req-body { flex: 1; min-width: 0; }
+    .req-meta { display: flex; gap: 6px; margin-bottom: 5px; flex-wrap: wrap; }
+    .tag {
+      font-size: 11px; font-weight: 500; padding: 2px 8px;
+      border-radius: 99px;
+    }
+    .tag-tech  { background: #e8f0fb; color: #0071e3; }
+    .tag-biz   { background: #fff0e6; color: #f56300; }
+    .tag-qual  { background: #e3f6ed; color: #1d9c5e; }
+    .tag-other { background: var(--surface2); color: var(--text-sub); }
+    .tag-id    { background: var(--surface2); color: var(--text-muted); font-family: var(--mono); }
+    .req-text  { font-size: 14px; color: var(--text); line-height: 1.55; }
+
+    .select-all-row {
+      display: flex; align-items: center; gap: 8px;
+      margin-bottom: 12px; padding: 0 2px;
+    }
+    .select-all-label { font-size: 13px; color: var(--text-sub); cursor: pointer; }
+
+    /* ─── Markdown Preview ─────────────────────────────────── */
+    .md-preview {
+      font-size: 14px; color: var(--text); line-height: 1.8;
+      max-height: 520px; overflow-y: auto; padding-right: 4px;
+    }
+    .md-preview::-webkit-scrollbar { width: 4px; }
+    .md-preview::-webkit-scrollbar-thumb { background: var(--border); border-radius: 99px; }
+    .md-preview h1 { font-size: 20px; font-weight: 700; margin: 20px 0 8px; letter-spacing: -.2px; }
+    .md-preview h2 { font-size: 17px; font-weight: 700; margin: 18px 0 7px; }
+    .md-preview h3 { font-size: 15px; font-weight: 600; margin: 14px 0 6px; }
+    .md-preview p  { margin-bottom: 10px; }
+    .md-preview ul, .md-preview ol { padding-left: 20px; margin-bottom: 10px; }
+    .md-preview li { margin-bottom: 4px; }
+    .md-preview code { background: var(--surface); padding: 1px 5px; border-radius: 4px; font-family: var(--mono); font-size: 12px; }
+    .md-preview blockquote { border-left: 3px solid var(--accent-dim); padding-left: 14px; color: var(--text-sub); }
+    .md-preview hr { border: none; border-top: 1px solid var(--border-soft); margin: 16px 0; }
+
+    /* ─── Result ───────────────────────────────────────────── */
+    .result-hero { text-align: center; padding: 48px 24px; }
+    .result-icon {
+      width: 72px; height: 72px; border-radius: 50%;
+      background: var(--success-dim); display: flex;
+      align-items: center; justify-content: center; margin: 0 auto 20px;
+    }
+    .result-icon svg { color: var(--success); }
+    .result-title { font-size: 26px; font-weight: 700; letter-spacing: -.4px; margin-bottom: 8px; }
+    .result-sub { font-size: 15px; color: var(--text-sub); margin-bottom: 28px; }
+    .result-meta {
+      display: flex; justify-content: center; gap: 32px;
+      flex-wrap: wrap; margin-bottom: 32px;
+    }
+    .result-meta-item { font-size: 13px; color: var(--text-sub); text-align: center; }
+    .result-meta-item strong { display: block; font-size: 15px; font-weight: 600; color: var(--text); margin-bottom: 3px; }
+
+    /* ─── Stream cursor ────────────────────────────────────── */
+    .stream-cursor {
+      display: inline-block; width: 2px; height: 1em;
+      background: var(--accent); margin-left: 2px;
+      vertical-align: text-bottom; animation: blink .8s steps(1) infinite;
+    }
+    @keyframes blink { 50% { opacity: 0; } }
+
+    /* ─── Nav project chip ─────────────────────────────────── */
+    .project-pill {
+      display: inline-flex; align-items: center; gap: 6px;
+      font-size: 13px; color: var(--text-sub);
+      background: var(--surface); border: 1px solid var(--border-soft);
+      padding: 4px 12px; border-radius: 99px;
+    }
+    .project-pill strong { color: var(--text); font-weight: 600; }
+
+    /* ─── Toast ────────────────────────────────────────────── */
+    #toast-wrap {
+      position: fixed; top: 64px; left: 50%; transform: translateX(-50%);
+      z-index: 9999; display: flex; flex-direction: column; align-items: center; gap: 8px;
+      pointer-events: none;
+    }
+    .toast {
+      font-size: 14px; font-weight: 500; padding: 10px 18px;
+      border-radius: 99px; box-shadow: var(--shadow-lg);
+      animation: toast-in .25s ease; pointer-events: auto;
+      display: flex; align-items: center; gap: 8px;
+    }
+    .toast-success { background: #1d1d1f; color: #fff; }
+    .toast-error   { background: var(--red); color: #fff; }
+    .toast-info    { background: var(--surface); color: var(--text); border: 1px solid var(--border); }
+    @keyframes toast-in { from { opacity:0; transform: translateY(-6px) scale(.97); } to { opacity:1; transform: none; } }
+
+    /* ─── Utility ──────────────────────────────────────────── */
+    .hidden { display: none !important; }
+
+    /* ─── Responsive ───────────────────────────────────────── */
+    @media (max-width: 600px) {
+      .page { padding: 28px 16px 80px; }
+      nav { padding: 0 16px; }
+      .card { padding: 20px 18px; }
+      .hero h1 { font-size: 26px; }
+      .step-label { font-size: 10px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- Nav -->
+<nav>
+  <div class="nav-brand">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+      <polyline points="14 2 14 8 20 8"/>
+      <line x1="16" y1="13" x2="8" y2="13"/>
+      <line x1="16" y1="17" x2="8" y2="17"/>
+    </svg>
+    智能投标工作台
+    <span class="nav-badge">Beta</span>
+  </div>
+  <div id="nav-project" class="project-pill hidden">
+    <svg width="7" height="7" viewBox="0 0 8 8"><circle cx="4" cy="4" r="4" fill="#1d9c5e"/></svg>
+    <strong id="nav-project-name">—</strong>
+  </div>
+</nav>
+
+<!-- Toast -->
+<div id="toast-wrap"></div>
+
+<!-- Page -->
+<div class="page">
+
+  <!-- Hero -->
+  <div class="hero">
+    <h1>从招标文件到投标方案<br>只需几步</h1>
+    <p>上传招标文件，AI 自动提取技术要求并生成完整的投标方案文件。</p>
+  </div>
+
+  <!-- Steps -->
+  <div class="steps">
+    <div class="step active" id="step-0"><div class="step-circle">1</div><div class="step-label">上传文件</div></div>
+    <div class="step" id="step-1"><div class="step-circle">2</div><div class="step-label">审核要求</div></div>
+    <div class="step" id="step-2"><div class="step-circle">3</div><div class="step-label">技术方案</div></div>
+    <div class="step" id="step-3"><div class="step-circle">4</div><div class="step-label">生成文件</div></div>
+  </div>
+
+  <!-- ── SCREEN: Upload ── -->
+  <div id="screen-upload" class="card">
+    <div class="card-title">上传招标文件</div>
+    <div class="card-sub">支持 PDF、Word（.docx）、纯文本，建议文件不超过 30 MB</div>
+
+    <div class="upload-zone" id="upload-zone">
+      <input type="file" id="file-input" accept=".pdf,.docx,.doc,.txt" />
+      <div class="upload-icon">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="16 16 12 12 8 16"/><line x1="12" y1="12" x2="12" y2="21"/>
+          <path d="M20.39 18.39A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.3"/>
+        </svg>
+      </div>
+      <div class="upload-title">拖拽文件至此，或点击选择</div>
+      <div class="upload-hint" style="font-size:13px; color:var(--text-muted); margin-top:4px;">PDF · DOCX · TXT</div>
+    </div>
+
+    <div class="file-selected" id="file-selected">
+      <div class="file-icon">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/>
+        </svg>
+      </div>
+      <div class="file-info">
+        <div class="file-name" id="file-name-display">—</div>
+        <div class="file-size" id="file-size-display">—</div>
+      </div>
+      <button class="btn btn-ghost" onclick="clearFile()" style="font-size:13px; padding:6px 10px;">移除</button>
+    </div>
+
+    <div class="btn-row">
+      <button class="btn btn-primary" id="btn-upload" onclick="doUpload()" disabled>
+        上传并解析
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- ── SCREEN: Loading ── -->
+  <div id="screen-loading" class="card hidden">
+    <div class="loading-block">
+      <div class="spinner spinner-dark"></div>
+      <div id="loading-msg" style="font-size:15px; color:var(--text-sub); font-weight:500;">正在上传文件…</div>
+      <div class="progress-bar-wrap">
+        <div class="progress-bar" id="loading-progress" style="width:30%"></div>
+      </div>
+      <div id="loading-sub" style="font-size:13px; color:var(--text-muted);"></div>
+    </div>
+  </div>
+
+  <!-- ── SCREEN: Review ── -->
+  <div id="screen-review" class="card hidden">
+    <div class="card-title">审核技术要求</div>
+    <div class="card-sub">AI 已从招标文件中提取以下要求，请勾选需要纳入技术方案的条目</div>
+
+    <div class="req-stats" id="req-stats"></div>
+
+    <div class="select-all-row">
+      <input type="checkbox" id="chk-all" class="req-checkbox" onchange="toggleAll(this.checked)" checked />
+      <label for="chk-all" class="select-all-label">全选 / 全不选</label>
+      <span id="selected-count" style="margin-left:auto; font-size:13px; color:var(--text-sub);"></span>
+    </div>
+
+    <div class="req-list" id="req-list"></div>
+
+    <div class="btn-row">
+      <button class="btn btn-ghost" onclick="goReset()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
+        重新上传
+      </button>
+      <button class="btn btn-primary" onclick="doConfirm()">
+        确认，生成技术方案
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- ── SCREEN: Preview ── -->
+  <div id="screen-preview" class="card hidden">
+    <div class="card-title">技术方案预览</div>
+    <div class="card-sub" id="preview-sub">AI 正在生成技术方案，请稍候…</div>
+
+    <div id="stream-loading" class="loading-block" style="padding:32px 0;">
+      <div class="spinner spinner-dark"></div>
+      <div style="font-size:14px; color:var(--text-sub);">AI 正在构建技术方案…</div>
+    </div>
+
+    <div class="md-preview" id="md-preview"></div>
+
+    <div class="btn-row" id="preview-actions" style="display:none; margin-top:28px;">
+      <button class="btn btn-ghost" onclick="goStep(1)">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
+        返回修改
+      </button>
+      <button class="btn btn-secondary" onclick="doRegenerate()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-4"/></svg>
+        重新生成
+      </button>
+      <button class="btn btn-primary" onclick="doGenerate()">
+        确认，生成最终文件
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- ── SCREEN: Generating ── -->
+  <div id="screen-generating" class="card hidden">
+    <div class="loading-block">
+      <div class="spinner spinner-dark"></div>
+      <div id="gen-msg" style="font-size:15px; color:var(--text-sub); font-weight:500;">正在生成最终投标文件…</div>
+      <div id="gen-sub" style="font-size:13px; color:var(--text-muted);">包含商务卷、技术卷、报价卷</div>
+    </div>
+  </div>
+
+  <!-- ── SCREEN: Done ── -->
+  <div id="screen-done" class="card hidden">
+    <div class="result-hero">
+      <div class="result-icon">
+        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="20 6 9 17 4 12"/>
+        </svg>
+      </div>
+      <div class="result-title">投标文件生成完毕</div>
+      <div class="result-sub" id="done-sub">包含商务卷、技术卷、报价卷完整内容</div>
+
+      <div class="result-meta">
+        <div class="result-meta-item"><strong>黑体 + 宋体</strong>格式规范排版</div>
+        <div class="result-meta-item"><strong>首行缩进</strong>固定行距</div>
+        <div class="result-meta-item"><strong>Word 格式</strong>可直接投标</div>
+      </div>
+
+      <div style="display:flex; gap:12px; justify-content:center; flex-wrap:wrap;">
+        <button class="btn btn-primary" onclick="doDownload()" style="font-size:16px; padding:13px 30px;">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          下载 Word 文件
+        </button>
+        <button class="btn btn-secondary" onclick="goReset()" style="font-size:15px; padding:13px 26px;">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          生成新的文件
+        </button>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /page -->
+
+<script>
+/* ── State ─────────────────────────────────────────── */
+const S = { taskId:null, projectName:'', requirements:[], confirmedReqs:[], file:null };
+
+/* ── Toast ──────────────────────────────────────────── */
+function toast(msg, type='success', dur=3000) {
+  const wrap = document.getElementById('toast-wrap');
+  const el = document.createElement('div');
+  el.className = `toast toast-${type}`;
+  const ic = { success:'<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>', error:'<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>', info:'' };
+  el.innerHTML = (ic[type]||'') + msg;
+  wrap.appendChild(el);
+  setTimeout(()=>el.remove(), dur);
+}
+
+/* ── Screens ─────────────────────────────────────────── */
+function showScreen(name) {
+  ['upload','loading','review','preview','generating','done'].forEach(s=>{
+    document.getElementById(`screen-${s}`)?.classList.add('hidden');
+  });
+  document.getElementById(`screen-${name}`)?.classList.remove('hidden');
+}
+function setStep(n) {
+  [0,1,2,3].forEach(i=>{
+    const el = document.getElementById(`step-${i}`);
+    el.classList.remove('active','done');
+    if(i<n) el.classList.add('done');
+    if(i===n) el.classList.add('active');
+  });
+}
+function goStep(n) {
+  setStep(n);
+  if(n===1){ showScreen('review'); renderReqs(); }
+}
+
+/* ── File Input ──────────────────────────────────────── */
+const fileInput = document.getElementById('file-input');
+const uploadZone = document.getElementById('upload-zone');
+fileInput.addEventListener('change', e=>{ if(e.target.files[0]) setFile(e.target.files[0]); });
+uploadZone.addEventListener('dragover', e=>{ e.preventDefault(); uploadZone.classList.add('drag'); });
+uploadZone.addEventListener('dragleave', ()=>uploadZone.classList.remove('drag'));
+uploadZone.addEventListener('drop', e=>{
+  e.preventDefault(); uploadZone.classList.remove('drag');
+  const f = e.dataTransfer.files[0]; if(f) setFile(f);
+});
+function setFile(f) {
+  S.file = f;
+  document.getElementById('file-name-display').textContent = f.name;
+  document.getElementById('file-size-display').textContent = fmtSize(f.size);
+  document.getElementById('file-selected').classList.add('show');
+  document.getElementById('btn-upload').disabled = false;
+}
+function clearFile() {
+  S.file = null; fileInput.value = '';
+  document.getElementById('file-selected').classList.remove('show');
+  document.getElementById('btn-upload').disabled = true;
+}
+function fmtSize(b) {
+  if(b<1024) return b+' B';
+  if(b<1024*1024) return (b/1024).toFixed(1)+' KB';
+  return (b/1024/1024).toFixed(1)+' MB';
+}
+
+/* ── Upload & Extract ────────────────────────────────── */
+async function doUpload() {
+  if(!S.file) return;
+  showScreen('loading'); setStep(0);
+  setLoading('正在上传文件…','',40);
+  const fd = new FormData(); fd.append('file',S.file);
+  try {
+    const r = await fetch('/api/upload',{method:'POST',body:fd});
+    if(!r.ok) throw new Error((await r.json()).detail||'上传失败');
+    const d = await r.json();
+    S.taskId = d.task_id; S.projectName = d.project_name||'待提取';
+    setNavProject(S.projectName);
+    setLoading('AI 正在分析招标文件…','提取技术要求中，通常需要 15–30 秒',70);
+    await doExtract();
+  } catch(e){ toast(e.message,'error'); showScreen('upload'); }
+}
+async function doExtract() {
+  try {
+    const r = await fetch('/api/extract',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({task_id:S.taskId})});
+    if(!r.ok) throw new Error((await r.json()).detail||'提取失败');
+    const d = await r.json();
+    S.requirements = d.requirements||[];
+    S.projectName = d.project_name||S.projectName;
+    setNavProject(S.projectName);
+    setStep(1); showScreen('review'); renderReqs();
+    toast(`已提取 ${S.requirements.length} 条技术要求`,'success');
+  } catch(e){ toast(e.message,'error'); showScreen('upload'); }
+}
+function setLoading(msg, sub, pct) {
+  document.getElementById('loading-msg').textContent = msg;
+  document.getElementById('loading-sub').textContent = sub||'';
+  document.getElementById('loading-progress').style.width = (pct||30)+'%';
+}
+
+/* ── Requirements ────────────────────────────────────── */
+const TAG_MAP = {'技术':'tag-tech','technical':'tag-tech','商务':'tag-biz','business':'tag-biz','资质':'tag-qual','质量':'tag-qual'};
+function getTagClass(src) {
+  for(const k in TAG_MAP) if(src?.toLowerCase().includes(k.toLowerCase())) return TAG_MAP[k];
+  return 'tag-other';
+}
+function renderReqs() {
+  const list = document.getElementById('req-list');
+  list.innerHTML = '';
+  const stats = document.getElementById('req-stats');
+  const byType = {};
+  S.requirements.forEach(r=>{ (byType[r.source||'其他']=byType[r.source||'其他']||[]).push(r); });
+  stats.innerHTML = `<div class="stat-chip"><span class="dot" style="background:var(--accent)"></span>共 <strong style="margin-left:2px">${S.requirements.length}</strong>&nbsp;条</div>`;
+  Object.entries(byType).forEach(([k,v])=>{
+    stats.innerHTML += `<div class="stat-chip"><span class="dot" style="background:var(--text-muted)"></span>${k}&nbsp;<strong>${v.length}</strong></div>`;
+  });
+  S.requirements.forEach(req=>{
+    const item = document.createElement('div');
+    item.className = 'req-item';
+    item.innerHTML = `
+      <input type="checkbox" class="req-checkbox req-chk" id="chk-${req.id}" checked onchange="updateCount()"/>
+      <div class="req-body">
+        <div class="req-meta">
+          <span class="tag tag-id">#${req.id}</span>
+          ${req.source?`<span class="tag ${getTagClass(req.source)}">${req.source}</span>`:''}
+        </div>
+        <div class="req-text">${req.text}</div>
+      </div>`;
+    list.appendChild(item);
+  });
+  updateCount();
+}
+function updateCount() {
+  const chks = [...document.querySelectorAll('.req-chk')];
+  document.getElementById('selected-count').textContent = `已选 ${chks.filter(c=>c.checked).length} / ${chks.length}`;
+}
+function toggleAll(v) {
+  document.querySelectorAll('.req-chk').forEach(c=>c.checked=v); updateCount();
+}
+
+/* ── Confirm & Expand ────────────────────────────────── */
+async function doConfirm() {
+  const chks = [...document.querySelectorAll('.req-chk')];
+  const checked = chks.map((c,i)=>c.checked?S.requirements[i]:null).filter(Boolean);
+  if(!checked.length){ toast('请至少选择一条要求','error'); return; }
+  S.confirmedReqs = checked;
+  setStep(2); showScreen('preview');
+  document.getElementById('preview-sub').textContent = `已选 ${checked.length} 条要求 · AI 正在生成中…`;
+  document.getElementById('stream-loading').classList.remove('hidden');
+  document.getElementById('preview-actions').style.display = 'none';
+  document.getElementById('md-preview').innerHTML = '';
+  await doExpand();
+}
+async function doExpand() {
+  const preview = document.getElementById('md-preview');
+  let buf = '';
+  try {
+    const r = await fetch('/api/expand',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({task_id:S.taskId,confirmed_requirements:S.confirmedReqs})});
+    if(!r.ok) throw new Error((await r.json()).detail||'生成失败');
+    const reader = r.body.getReader(), dec = new TextDecoder();
+    document.getElementById('stream-loading').classList.add('hidden');
+    while(true) {
+      const {done, value} = await reader.read(); if(done) break;
+      for(const line of dec.decode(value).split('\n')) {
+        if(!line.startsWith('data:')) continue;
+        try {
+          const obj = JSON.parse(line.slice(5));
+          if(obj.type==='chunk'){ buf+=obj.content; preview.innerHTML=renderMd(buf)+'<span class="stream-cursor"></span>'; preview.scrollTop=preview.scrollHeight; }
+          if(obj.type==='done'){ document.querySelector('.stream-cursor')?.remove(); document.getElementById('preview-sub').textContent=`生成完成 · 共 ${buf.length.toLocaleString()} 字符`; document.getElementById('preview-actions').style.display='flex'; toast('技术方案生成完成','success'); }
+          if(obj.type==='error') throw new Error(obj.message);
+        } catch(e){ if(e.message&&!e.message.includes('JSON')) throw e; }
+      }
+    }
+  } catch(e){ toast(e.message,'error'); document.getElementById('stream-loading').classList.add('hidden'); document.getElementById('preview-actions').style.display='flex'; }
+}
+async function doRegenerate() {
+  document.getElementById('preview-actions').style.display='none';
+  document.getElementById('stream-loading').classList.remove('hidden');
+  document.getElementById('md-preview').innerHTML='';
+  await doExpand();
+}
+
+/* ── Generate Final ──────────────────────────────────── */
+async function doGenerate() {
+  setStep(3); showScreen('generating');
+  try {
+    document.getElementById('gen-msg').textContent='AI 正在调整商务和报价内容…';
+    const r1 = await fetch('/api/adjust',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({task_id:S.taskId})});
+    if(!r1.ok) throw new Error((await r1.json()).detail||'调整失败');
+    document.getElementById('gen-msg').textContent='正在合并三卷内容并生成 Word 文件…';
+    const r2 = await fetch('/api/generate',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({task_id:S.taskId})});
+    if(!r2.ok) throw new Error((await r2.json()).detail||'生成失败');
+    const d = await r2.json();
+    showScreen('done');
+    document.getElementById('done-sub').textContent = `项目：${S.projectName} · 包含商务、技术、报价三卷`;
+    toast('投标文件生成完毕！','success');
+  } catch(e){ toast(e.message,'error'); showScreen('preview'); document.getElementById('preview-actions').style.display='flex'; }
+}
+
+/* ── Download & Reset ────────────────────────────────── */
+function doDownload(){
+  const a = document.createElement('a');
+  a.href = `/api/download/${S.taskId}`;
+  a.download = '';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  toast('文件下载已开始','info');
+}
+function goReset() {
+  Object.assign(S,{taskId:null,projectName:'',requirements:[],confirmedReqs:[],file:null});
+  fileInput.value='';
+  document.getElementById('file-selected').classList.remove('show');
+  document.getElementById('btn-upload').disabled=true;
+  document.getElementById('nav-project').classList.add('hidden');
+  setStep(0); showScreen('upload');
+}
+function setNavProject(name) {
+  if(!name||name==='待提取') return;
+  document.getElementById('nav-project-name').textContent=name;
+  document.getElementById('nav-project').classList.remove('hidden');
+}
+
+/* ── Markdown Renderer ───────────────────────────────── */
+function renderMd(md) {
+  return '<div>' + md
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    .replace(/^### (.+)$/gm,'<h3>$1</h3>')
+    .replace(/^## (.+)$/gm,'<h2>$1</h2>')
+    .replace(/^# (.+)$/gm,'<h1>$1</h1>')
+    .replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>')
+    .replace(/\*(.+?)\*/g,'<em>$1</em>')
+    .replace(/`(.+?)`/g,'<code>$1</code>')
+    .replace(/^---$/gm,'<hr>')
+    .replace(/^> (.+)$/gm,'<blockquote>$1</blockquote>')
+    .replace(/^[-*] (.+)$/gm,'<li>$1</li>')
+    .replace(/\n{2,}/g,'</p><p>')
+    .replace(/\n/g,'<br>') + '</div>';
+}
+</script>
+</body>
 </html>

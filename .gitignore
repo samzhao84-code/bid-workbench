@@ -5,3 +5,12 @@ __pycache__/
 .env.*
 data/
 *.log
+"create_repo.py" 
+"push_code.py" 
+"fix_commit.py" 
+"create_repo.py" 
+"push_code.py" 
+"fix_commit.py" 
+create_repo.py
+push_code.py
+fix_commit.py

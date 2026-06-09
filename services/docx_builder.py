@@ -5,13 +5,19 @@ Directly reuses code from bid-tech-enrichment skill.
 """
 import os
 import sys
+import tempfile
 from docx import Document
 from docx.oxml.ns import qn
 from lxml import etree
 
 W_NS = 'http://schemas.openxmlformats.org/wordprocessingml/2006/main'
 
-DEFAULT_TEMPLATE = r"C:\Users\shanzhao\Desktop\workbuddy投标书\商务+报价.docx"
+# Default template path: use env var or project-local template/
+_BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+DEFAULT_TEMPLATE = os.environ.get(
+    "TEMPLATE_PATH",
+    os.path.join(_BASE_DIR, "template", "商务+报价.docx")
+)
 
 
 def make_heading1(text):
@@ -454,7 +460,11 @@ def inject_anchor_if_needed(template_path: str) -> str:
         new_p.append(r_elem)
         anchor_para.addprevious(new_p)
 
-    output_copy = template_path.replace(".docx", "_带占位符.docx")
+    # Save to temp dir (sandbox may block writing next to original template)
+    temp_dir = os.path.join(tempfile.gettempdir(), "bid-workbench-templates")
+    os.makedirs(temp_dir, exist_ok=True)
+    template_name = os.path.basename(template_path).replace(".docx", "_带占位符.docx")
+    output_copy = os.path.join(temp_dir, template_name)
     doc.save(output_copy)
     return output_copy
 

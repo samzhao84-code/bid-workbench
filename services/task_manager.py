@@ -4,7 +4,9 @@ import uuid
 from datetime import datetime
 from typing import Optional
 
-DATA_DIR = os.environ.get("DATA_DIR", os.path.join(os.path.dirname(os.path.dirname(__file__)), "data"))
+# Use DATA_DIR env var if set (for Railway/docker), otherwise use project-local data/
+_BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+DATA_DIR = os.environ.get("DATA_DIR", os.path.join(_BASE_DIR, "data"))
 TASKS_DIR = os.path.join(DATA_DIR, "tasks")
 UPLOADS_DIR = os.path.join(DATA_DIR, "uploads")
 OUTPUTS_DIR = os.path.join(DATA_DIR, "outputs")

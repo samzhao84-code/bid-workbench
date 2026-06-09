@@ -272,10 +272,10 @@ async def get_status(task_id: str):
 @app.get("/api/tasks")
 async def list_tasks():
     """List all tasks."""
-    tasks_dir = os.path.join(os.path.dirname(__file__), "data", "tasks")
+    from services.task_manager import TASKS_DIR
     tasks = []
-    if os.path.exists(tasks_dir):
-        for fname in os.listdir(tasks_dir):
+    if os.path.exists(TASKS_DIR):
+        for fname in os.listdir(TASKS_DIR):
             if fname.endswith(".json"):
                 task_id = fname.replace(".json", "")
                 t = Task.load(task_id)
