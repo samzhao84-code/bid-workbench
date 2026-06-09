@@ -36,6 +36,18 @@ app.add_middleware(
 
 ensure_dirs()
 
+
+@app.on_event("startup")
+async def startup_event():
+    """Log startup info for debugging."""
+    port = os.environ.get("PORT", "8000")
+    print(f"🚀 Bid Workbench starting on port {port}")
+    print(f"📂 DATA_DIR: {os.environ.get('DATA_DIR', os.path.join(_BASE_DIR, 'data'))}")
+    print(f"📄 TEMPLATE_PATH: {TEMPLATE_PATH}")
+    print(f"🔑 LLM_API_KEY: {'set' if os.environ.get('LLM_API_KEY') else 'NOT SET'}")
+    ensure_dirs()
+    print("✅ Directories ensured, health check ready")
+
 TEMPLATE_PATH = os.environ.get(
     "TEMPLATE_PATH",
     os.path.join(_BASE_DIR, "template", "商务+报价.docx")
@@ -62,7 +74,13 @@ class GenerateRequest(BaseModel):
 
 # --- API Routes ---
 @app.get("/api/health")
+@app.head("/api/health")
 def health():
+    """Health check endpoint for Railway / Docker."""
+    try:
+        ensure_dirs()
+    except Exception:
+        pass
     return {"service": "Bid Workbench API", "version": "1.0.0", "status": "ok"}
 
 

@@ -15,11 +15,15 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY . .
 
 # Create data directory for uploads/outputs
-RUN mkdir -p /app/data
+RUN mkdir -p /app/data /app/data/tasks /app/data/uploads /app/data/outputs
 
 # Expose port (Railway sets $PORT)
 ENV PORT=8000
 EXPOSE ${PORT}
 
+# Health check
+HEALTHCHECK --interval=10s --timeout=5s --start-period=120s --retries=3 \
+    CMD python -c "import urllib.request; urllib.request.urlopen('http://localhost:${PORT:-8000}/api/health')" || exit 1
+
 # Start
-CMD uvicorn main:app --host 0.0.0.0 --port ${PORT:-8000}
+CMD ["sh", "-c", "uvicorn main:app --host 0.0.0.0 --port ${PORT:-8000}"]
