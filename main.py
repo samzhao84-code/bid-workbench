@@ -81,7 +81,21 @@ def health():
         ensure_dirs()
     except Exception:
         pass
-    return {"service": "Bid Workbench API", "version": "1.0.0", "status": "ok"}
+
+    api_key_set = bool(os.environ.get("LLM_API_KEY"))
+    base_url = os.environ.get("LLM_BASE_URL", "default")
+    model = os.environ.get("LLM_MODEL", "default")
+
+    return {
+        "service": "Bid Workbench API",
+        "version": "1.0.0",
+        "status": "ok",
+        "config": {
+            "api_key_configured": api_key_set,
+            "base_url": base_url,
+            "model": model,
+        },
+    }
 
 
 @app.post("/api/upload")
