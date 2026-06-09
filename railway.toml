@@ -1,8 +1,5 @@
-[build]
-builder = "nixpacks"
-
 [deploy]
-startCommand = "uvicorn main:app --host 0.0.0.0 --port $PORT"
+# 不设置 startCommand — 让 Railway 用 Dockerfile 中的 CMD（通过 sh -c 展开 ${PORT}）
 healthcheckPath = "/api/health"
 healthcheckTimeout = 300
 restartPolicyType = "on_failure"
