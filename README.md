@@ -5,7 +5,7 @@
 ![Python](https://img.shields.io/badge/Python-3.11-blue?logo=python)
 ![FastAPI](https://img.shields.io/badge/FastAPI-0.115-green?logo=fastapi)
 ![DeepSeek](https://img.shields.io/badge/DeepSeek-V3-orange?logo=deepseek&logoColor=white)
-![License](https://img.shields.io/badge/License-MIT-yellow)
+
 
 ## 项目背景
 
@@ -169,9 +169,6 @@ bid-workbench/
 - [ ] 支持批量处理多个招标文件
 - [ ] 增加投标书质量评分与优化建议
 
-## License
-
-MIT License - 自由使用，欢迎 Star ⭐
 
 ## 作者
 
