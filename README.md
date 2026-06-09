@@ -175,6 +175,6 @@ MIT License - 自由使用，欢迎 Star ⭐
 
 ## 作者
 
-**赵杉** — 华北电力大学工业工程硕士 | AI Product Manager Aspirant
+Sam
 
 > 如果这个项目对你有帮助，欢迎给个 ⭐！也欢迎通过 Issue 提交建议或反馈问题。
