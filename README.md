@@ -1,5 +1,5 @@
 # 智能投标工作台 (Bid Workbench)
-访问网址：https://bid-workbench-production-e798.up.railway.app/
+
 > 基于 DeepSeek 大模型的智能招投标文档生成平台 —— 上传招标文件，一键生成完整投标书。
 
 ![Python](https://img.shields.io/badge/Python-3.11-blue?logo=python)
